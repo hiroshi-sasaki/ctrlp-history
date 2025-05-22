@@ -23,7 +23,7 @@ endif
 
 function! ctrlp#history#cmd#init()
     redir => hist
-    silent history
+    silent history :
     redir END
     let arranged_hist = []
     for h in split(hist,"\n")[1:]
@@ -35,8 +35,15 @@ endfunc
 function! ctrlp#history#cmd#accept(mode, str)
     call ctrlp#exit()
     echo a:str
-    call histadd("cmd",a:str)
-    exec a:str
+    let s:str = substitute(a:str, "'<,'>", "%", "")
+    call histadd("cmd",s:str)
+    try
+        silent exec s:str
+    catch /^Vim\%((\a\+)\)\=:E486/
+        echohl ErrorMsg
+        exec 'echo "E486: Pattern not found: ' . @/ . '"'
+        echohl None
+    endtry
 endfunction
 
 function! ctrlp#history#cmd#exit()
